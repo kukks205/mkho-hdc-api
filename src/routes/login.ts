@@ -16,29 +16,31 @@ const connection = new Connection();
 router.post('/', (req, res, next) => {
   let username = req.body.username;
   let password = req.body.password;
-  let userType = req.body.userType;
 
-  if (username && password && userType) {
+  console.log(req.body);  
+
+  if (username && password) {
     let encPassword = crypto.createHash('md5').update(password).digest('hex');
 
+    let _conn: IConnection;
+    
     connection.getConnection()
       .then((conn: IConnection) => {
-        if (userType == '1') {
-          return loginModel.adminLogin(conn, username, encPassword);
-        } else {
-          return loginModel.userLogin(conn, username, encPassword);
-        }
+        _conn = conn;
+        return loginModel.doLogin(conn, username, encPassword);
       })
       .then((results: any) => {
         if (results.length) {
-          const payload = { userType: userType, fullname: results[0].fullname, employeeCode: results[0].employee_code };
+          const payload = { id: results[0].id, firstname: results[0].firstname, lastname: results[0].lastname };
           const token = jwt.sign(payload);
           res.send({ ok: true, token: token })
         } else {
           res.send({ ok: false, message: 'ชื่อผู้ใช้งานหรือรหัสผ่าน ไม่ถูกต้อง' })
         }
+        _conn.destroy();
       })
       .catch(err => {
+        _conn.destroy();
         console.log(err);
         res.send({ ok: false, message: 'Server error!' });
       })

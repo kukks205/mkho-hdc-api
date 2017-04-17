@@ -16,6 +16,9 @@ const jwt = new Jwt();
 import indexRoute from './routes/index';
 import adminRoute from './routes/admin';
 import loginRoute from './routes/login';
+import ancRoute from './routes/anc';
+import wbcRoute from './routes/wbc';
+import chronicRoute from './routes/chronic';
 
 const app: express.Express = express();
 
@@ -62,7 +65,7 @@ let userAuth = (req, res, next) => {
     });
 }
 
-let adminAuth = (req, res, next) => {
+let auth = (req, res, next) => {
   let token: string = null;
 
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -74,16 +77,12 @@ let adminAuth = (req, res, next) => {
   }
 
   // console.log(req.headers);
-  
+
   jwt.verify(token)
     .then((decoded: any) => {
-      if (decoded.userType == '1') { // admin
-        req.decoded = decoded;
-        console.log(req.decoded);
-        next();
-      } else {
-        return res.send({ ok: false, error: 'Permission denied!' });
-      }
+      req.decoded = decoded;
+      console.log(req.decoded);
+      next();
     }, err => {
       return res.send({
         ok: false,
@@ -94,7 +93,10 @@ let adminAuth = (req, res, next) => {
 }
 
 app.use('/login', loginRoute);
-app.use('/admin', adminAuth, adminRoute);
+app.use('/admin', auth, adminRoute);
+app.use('/anc', auth, ancRoute);
+app.use('/wbc', auth, wbcRoute);
+app.use('/chronic', auth, chronicRoute);
 app.use('/', indexRoute);
 
 //catch 404 and forward to error handler

@@ -1,13 +1,13 @@
 import * as mysql from 'mysql';
-import { IConnection } from 'mysql';
+import { IConnection, IConnectionConfig } from 'mysql';
 
 export class Connection {
   getConnection() {
     return new Promise((resolve, reject) => {
-      let config = {
+      let config: IConnectionConfig = {
         host: process.env.DB_HOST || 'localhost',
         port: process.env.DB_PORT || 3306,
-        database: process.env.DB_NAME || 'iattendances',
+        database: process.env.DB_NAME || 'hdc',
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || ''
       }
