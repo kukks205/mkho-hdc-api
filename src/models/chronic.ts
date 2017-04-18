@@ -94,4 +94,29 @@ export class ChronicModel {
       });
     });
   }
+
+  chronicNotRegister(connection: IConnection, hospcode: string, start: string, end: string) {
+    return new Promise((resolve, reject) => {
+      let sql = `
+        select t.cid, concat(p.NAME, " ", p.LNAME) as ptname, date_format(p.BIRTH, '%Y-%m-%d') as BIRTH, TIMESTAMPDIFF(year,p.BIRTH,current_date()) as age, 
+        p.SEX, p.TYPEAREA as typearea, t.input_hosp, 
+        group_concat(t.diagcode) as dxcode, date_format(t.date_dx, '%Y-%m-%d') as date_dx, t.hosp_dx, t.source_tb,
+        h1.hospname as input_hospname
+        from t_chronic as t
+        inner join person as p on p.HOSPCODE=t.p_hospcode and p.CID=t.cid
+        left join chospcode as h1 on h1.hospcode=t.input_hosp
+        where t.source_tb != 'chronic'
+        and t.p_hospcode=?
+        and t.date_dx between ? and ?
+        and t.p_typearea in ('1', '3')
+        and ((t.diagcode between 'I10' and 'I15') or (t.diagcode between 'E10' and 'E149'))
+        group by t.cid
+      `;
+      // run query
+      connection.query(sql, [hospcode, start, end], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
 }

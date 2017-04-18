@@ -2,6 +2,8 @@
 
 import * as express from 'express';
 import { IConnection } from 'mysql';
+import * as moment from 'moment';
+import * as path from 'path';
 
 import { Connection } from '../models/connection';
 import { ChronicModel } from '../models/chronic';
@@ -102,5 +104,73 @@ router.post('/admission/home-drug',(req,res,next) => {
     res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
   }
 });
+
+router.post('/not-register', (req,res,next) => {
+  const hospcode = req.body.hospcode;
+  const start = process.env.START_DATE;
+  const end = process.env.END_DATE;
+
+  if (hospcode ) {
+    connection.getConnection()
+      .then((conn: IConnection) => {
+        _conn = conn;
+        return chronicModel.chronicNotRegister(_conn, hospcode, start, end);
+      })
+      .then((result: any) => {
+        _conn.destroy();
+        res.send({ ok: true, rows: result });
+      })
+      .catch(error => {
+        _conn.destroy();
+        res.send({ ok: false, message: error });
+      });
+  } else { 
+    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  }
+});
+
+
+router.get('/not-register/excel', (req,res,next) => {
+  const hospcode = req.query.hospcode;
+  const start = process.env.START_DATE;
+  const end = process.env.END_DATE;
+
+  const json2xls = require('json2xls');
+  const fse = require('fs-extra');
+
+    if (hospcode ) {
+    connection.getConnection()
+      .then((conn: IConnection) => {
+        _conn = conn;
+        return chronicModel.chronicNotRegister(_conn, hospcode, start, end);
+      })
+      .then((result: any) => {
+        _conn.destroy();
+        //res.send({ ok: true, rows: result });
+        let xcel = json2xls(result);
+        let tmpDir = process.env.TMP_FOLDER;
+        fse.ensureDirSync(tmpDir);
+
+        let fileName = path.join(tmpDir, `${moment().format('x')}.xls`);
+        fse.writeFileSync(fileName, xcel, 'binary');
+        res.download(fileName, (err) => {
+          if (err) {
+            res.send({ok: false, message: err})
+          } else {
+            fse.removeSync(fileName);
+          }
+        });
+      })
+      .catch(error => {
+        _conn.destroy();
+        res.send({ ok: false, message: error });
+      });
+  } else { 
+    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  }
+
+});
+
+
 
 export default router;
