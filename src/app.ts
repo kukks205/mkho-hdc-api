@@ -8,7 +8,6 @@ import * as logger from 'morgan';
 import * as cookieParser from 'cookie-parser';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
-import * as json2xls from 'json2xls';
 
 import { Jwt } from './models/jwt';
 const jwt = new Jwt();
@@ -34,7 +33,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
-app.use(json2xls.middleware);
 
 let userAuth = (req, res, next) => {
   let token: string = null;
