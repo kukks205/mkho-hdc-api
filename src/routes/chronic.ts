@@ -129,6 +129,62 @@ router.post('/not-register', (req,res,next) => {
   }
 });
 
+router.post('/incorrect-diag', (req,res,next) => {
+  const hospcode = req.body.hospcode;
+  const pid = req.body.pid;
+  const dateServ = req.body.dateServ;
+  const sourceTb = req.body.sourceTb;
+
+  if (hospcode && pid && dateServ && sourceTb) {
+    connection.getConnection()
+      .then((conn: IConnection) => {
+        _conn = conn;
+        if (sourceTb === 'diag_opd') {
+          return chronicModel.getIncorrectDiagOpd(_conn, hospcode, pid, dateServ);
+        } else {
+          return chronicModel.getIncorrectDiagIpd(_conn, hospcode, pid, dateServ);
+        }
+      })
+      .then((result: any) => {
+        _conn.destroy();
+        res.send({ ok: true, rows: result });
+      })
+      .catch(error => {
+        _conn.destroy();
+        res.send({ ok: false, message: error });
+      });
+  } else { 
+    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  }
+});
+
+router.post('/drugs', (req,res,next) => {
+  const hospcode = req.body.hospcode;
+  const seq = req.body.seq;
+  const an = req.body.an;
+
+  if (hospcode && (seq || an)) {
+    connection.getConnection()
+      .then((conn: IConnection) => {
+        _conn = conn;
+        if (seq) {
+          return chronicModel.getDrugOpd(_conn, hospcode, seq);
+        } else {
+          return chronicModel.getDrugIpd(_conn, hospcode, an);
+        }
+      })
+      .then((result: any) => {
+        _conn.destroy();
+        res.send({ ok: true, rows: result });
+      })
+      .catch(error => {
+        _conn.destroy();
+        res.send({ ok: false, message: error });
+      });
+  } else { 
+    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  }
+});
 
 router.get('/not-register/excel', (req,res,next) => {
   const hospcode = req.query.hospcode;

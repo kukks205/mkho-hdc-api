@@ -98,14 +98,25 @@ export class ChronicModel {
   chronicNotRegister(connection: IConnection, hospcode: string, start: string, end: string) {
     return new Promise((resolve, reject) => {
       let sql = `
-        select t.cid, concat(p.NAME, " ", p.LNAME) as ptname, date_format(p.BIRTH, '%Y-%m-%d') as BIRTH, TIMESTAMPDIFF(year,p.BIRTH,current_date()) as age, 
-        p.SEX, p.TYPEAREA as typearea, t.input_hosp, 
-        group_concat(t.diagcode) as dxcode, date_format(t.date_dx, '%Y-%m-%d') as date_dx, t.hosp_dx, t.source_tb,
-        h1.hospname as input_hospname
+        select t.cid, p.PID as owner_pid, p.HOSPCODE as hospcode, 
+        p.HN as hn, concat(p.NAME, " ", p.LNAME) as ptname, 
+        date_format(p.BIRTH, "%Y-%m-%d") as birth, 
+        TIMESTAMPDIFF(year,p.BIRTH,current_date()) as age, 
+        p.SEX, p.TYPEAREA as typearea, t.input_hosp, t.input_pid,
+        group_concat(t.diagcode) as dxcode, 
+        date_format(t.date_dx, "%Y-%m-%d") as date_dx, t.hosp_dx, t.source_tb,
+        h1.hospname as input_hospname, ct.typedisch as typedisch_name
         from t_chronic as t
         inner join person as p on p.HOSPCODE=t.p_hospcode and p.CID=t.cid
         left join chospcode as h1 on h1.hospcode=t.input_hosp
+        left join ctypedisch as ct on ct.id_typedisch=t.typedisch
         where t.source_tb != 'chronic'
+        and concat(p.HOSPCODE, p.PID) not in (
+        select concat(c.HOSPCODE, c.PID) 
+        from chronic as c 
+        where c.HOSPCODE=?
+        and ((c.CHRONIC between 'I10' and 'I15') or (c.CHRONIC between 'E10' and 'E149'))
+        )
         and t.p_hospcode=?
         and t.date_dx between ? and ?
         and t.p_typearea in ('1', '3')
@@ -113,7 +124,82 @@ export class ChronicModel {
         group by t.cid
       `;
       // run query
-      connection.query(sql, [hospcode, start, end], (err, results) => {
+      connection.query(sql, [hospcode, hospcode, start, end], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  getIncorrectDiagOpd(connection: IConnection, hospcode: string, pid: string, dateServ: string) {
+    return new Promise((resolve, reject) => {
+      let sql = `
+        select d.*, '' as AN, cd.diagename, ch.hospname, ct.diagtypedesc as diagtype_name
+        from diagnosis_opd as d
+        left join cicd10tm as cd on cd.diagcode=d.DIAGCODE
+        left join chospcode as ch on ch.hospcode=d.HOSPCODE
+        left join cdiagtype as ct on ct.diagtype=d.DIAGTYPE
+        where d.HOSPCODE=? 
+        and d.PID=? 
+        and d.DATE_SERV=?
+        order by d.DIAGTYPE
+      `;
+      // run query
+      connection.query(sql, [hospcode, pid, dateServ], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  getIncorrectDiagIpd(connection: IConnection, hospcode: string, pid: string, dateServ: string) {
+    return new Promise((resolve, reject) => {
+      let sql = `
+        select d.PID, d.HOSPCODE, d.AN, '' as SEQ, DATE_FORMAT(d.DATETIME_ADMIT, "%Y-%m-%d") as DATE_SERV, 
+        d.DIAGCODE, d.DIAGTYPE, cd.diagename, ch.hospname, ct.diagtypedesc as diagtype_name
+        from diagnosis_ipd as d
+        left join cicd10tm as cd on cd.diagcode=d.DIAGCODE
+        left join chospcode as ch on ch.hospcode=d.HOSPCODE
+        left join cdiagtype as ct on ct.diagtype=d.DIAGTYPE
+        where d.HOSPCODE=? 
+        and d.PID=? 
+        and date_format(d.DATETIME_ADMIT, "%Y-%m-%d")=?
+        order by d.DIAGTYPE
+      `;
+      // run query
+      connection.query(sql, [hospcode, pid, dateServ], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  getDrugIpd(connection: IConnection, hospcode: string, an: string) {
+    return new Promise((resolve, reject) => {
+      let sql = `
+        select d.DNAME, d.AMOUNT, cu.unit as unit_name
+        from drug_ipd as d
+        left join cunit as cu on cu.id_unit=d.UNIT
+        where d.HOSPCODE=? and d.AN=?
+      `;
+      // run query
+      connection.query(sql, [hospcode, an], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  getDrugOpd(connection: IConnection, hospcode: string, seq: string) {
+    return new Promise((resolve, reject) => {
+      let sql = `
+        select d.DNAME, d.AMOUNT, cu.unit as unit_name
+        from drug_opd as d
+        left join cunit as cu on cu.id_unit=d.UNIT
+        where d.HOSPCODE=? and d.SEQ=?
+      `;
+      // run query
+      connection.query(sql, [hospcode, seq], (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
