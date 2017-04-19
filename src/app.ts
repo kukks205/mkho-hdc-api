@@ -18,6 +18,7 @@ import loginRoute from './routes/login';
 import ancRoute from './routes/anc';
 import wbcRoute from './routes/wbc';
 import chronicRoute from './routes/chronic';
+import personRoute from './routes/person';
 
 const app: express.Express = express();
 
@@ -95,6 +96,7 @@ app.use('/admin', auth, adminRoute);
 app.use('/anc', auth, ancRoute);
 app.use('/wbc', auth, wbcRoute);
 app.use('/chronic', auth, chronicRoute);
+app.use('/person', auth, personRoute);
 app.use('/', indexRoute);
 
 //catch 404 and forward to error handler
