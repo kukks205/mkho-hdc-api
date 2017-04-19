@@ -8,14 +8,17 @@ import * as path from 'path';
 import { Connection } from '../models/connection';
 import { ChronicModel } from '../models/chronic';
 
+const json2xls = require('json2xls');
+const fse = require('fs-extra');
+
 const connection = new Connection();
 const chronicModel = new ChronicModel();
 
 const router = express.Router();
 
 let _conn: IConnection;
-/* GET home page. */
-router.post('/lab/history',(req,res,next) => {
+
+router.post('/lab/history', (req, res, next) => {
   const cid = req.body.cid;
 
   if (cid) {
@@ -32,12 +35,12 @@ router.post('/lab/history',(req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'กรุณาระบุเลขบัตรประชาชน'})
+  } else {
+    res.send({ ok: false, message: 'กรุณาระบุเลขบัตรประชาชน' })
   }
 });
 
-router.post('/chronicfu/history',(req,res,next) => {
+router.post('/chronicfu/history', (req, res, next) => {
   const cid = req.body.cid;
 
   if (cid) {
@@ -54,12 +57,12 @@ router.post('/chronicfu/history',(req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'กรุณาระบุเลขบัตรประชาชน'})
+  } else {
+    res.send({ ok: false, message: 'กรุณาระบุเลขบัตรประชาชน' })
   }
 });
 
-router.post('/admission',(req,res,next) => {
+router.post('/admission', (req, res, next) => {
   const cid = req.body.cid;
 
   if (cid) {
@@ -76,12 +79,12 @@ router.post('/admission',(req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'กรุณาระบุเลขบัตรประชาชน'})
+  } else {
+    res.send({ ok: false, message: 'กรุณาระบุเลขบัตรประชาชน' })
   }
 });
 
-router.post('/admission/home-drug',(req,res,next) => {
+router.post('/admission/home-drug', (req, res, next) => {
   const hospcode = req.body.hospcode;
   const pid = req.body.pid;
   const an = req.body.an;
@@ -100,17 +103,17 @@ router.post('/admission/home-drug',(req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  } else {
+    res.send({ ok: false, message: 'ข้อมูลไม่สมบูรณ์' })
   }
 });
 
-router.post('/not-register', (req,res,next) => {
+router.post('/not-register', (req, res, next) => {
   const hospcode = req.body.hospcode;
   const start = process.env.START_DATE;
   const end = process.env.END_DATE;
 
-  if (hospcode ) {
+  if (hospcode) {
     connection.getConnection()
       .then((conn: IConnection) => {
         _conn = conn;
@@ -124,12 +127,12 @@ router.post('/not-register', (req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  } else {
+    res.send({ ok: false, message: 'ข้อมูลไม่สมบูรณ์' })
   }
 });
 
-router.post('/incorrect-diag', (req,res,next) => {
+router.post('/incorrect-diag', (req, res, next) => {
   const hospcode = req.body.hospcode;
   const pid = req.body.pid;
   const dateServ = req.body.dateServ;
@@ -153,12 +156,12 @@ router.post('/incorrect-diag', (req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  } else {
+    res.send({ ok: false, message: 'ข้อมูลไม่สมบูรณ์' })
   }
 });
 
-router.post('/drugs', (req,res,next) => {
+router.post('/drugs', (req, res, next) => {
   const hospcode = req.body.hospcode;
   const seq = req.body.seq;
   const an = req.body.an;
@@ -181,20 +184,17 @@ router.post('/drugs', (req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  } else {
+    res.send({ ok: false, message: 'ข้อมูลไม่สมบูรณ์' })
   }
 });
 
-router.get('/not-register/excel', (req,res,next) => {
+router.get('/not-register/excel', (req, res, next) => {
   const hospcode = req.query.hospcode;
   const start = process.env.START_DATE;
   const end = process.env.END_DATE;
 
-  const json2xls = require('json2xls');
-  const fse = require('fs-extra');
-
-    if (hospcode ) {
+  if (hospcode) {
     connection.getConnection()
       .then((conn: IConnection) => {
         _conn = conn;
@@ -211,7 +211,7 @@ router.get('/not-register/excel', (req,res,next) => {
         fse.writeFileSync(fileName, xcel, 'binary');
         res.download(fileName, (err) => {
           if (err) {
-            res.send({ok: false, message: err})
+            res.send({ ok: false, message: err })
           } else {
             fse.removeSync(fileName);
           }
@@ -221,12 +221,10 @@ router.get('/not-register/excel', (req,res,next) => {
         _conn.destroy();
         res.send({ ok: false, message: error });
       });
-  } else { 
-    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  } else {
+    res.send({ ok: false, message: 'ข้อมูลไม่สมบูรณ์' })
   }
 
 });
-
-
 
 export default router;
