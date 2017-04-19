@@ -51,4 +51,28 @@ export class PersonModel {
       });
     });
   }
+
+  getDuplicatedList(connection: IConnection, cid: string) {
+    return new Promise((resolve, reject) => {
+      let sql = `
+        select concat(p.NAME, " ", p.LNAME) as ptname,
+        p.PID as pid, p.HN as hn, p.SEX as sex, 
+        date_format(p.BIRTH, '%Y-%m-%d') as birth,
+        TIMESTAMPDIFF(year,p.BIRTH,current_date()) as age,
+        p.TYPEAREA as typearea,p.HOSPCODE as hospcode, h.hospname, 
+        date_format(p.D_UPDATE, '%Y-%m-%d %H:%m:%s') as d_update,
+        cd.dischargedesc as discharge_name
+        from person as p
+        left join chospcode as h on h.hospcode=p.HOSPCODE
+        left join cdischarge as cd on cd.dischargecode=p.DISCHARGE
+        where p.CID=?
+        and p.TYPEAREA in ('1', '3')
+      `;
+      // run query
+      connection.query(sql, [cid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
 }

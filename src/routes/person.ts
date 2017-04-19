@@ -42,6 +42,28 @@ router.post('/duplicated',(req,res,next) => {
   }
 });
 
+router.post('/duplicated/list',(req,res,next) => {
+  const cid = req.body.cid;
+
+  if (cid) {
+    connection.getConnection()
+      .then((conn: IConnection) => {
+        _conn = conn;
+        return personModel.getDuplicatedList(_conn, cid);
+      })
+      .then((result: any) => {
+        _conn.destroy();
+        res.send({ ok: true, rows: result });
+      })
+      .catch(error => {
+        _conn.destroy();
+        res.send({ ok: false, message: error });
+      });
+  } else { 
+    res.send({ok: false, message: 'ข้อมูลไม่สมบูรณ์'})
+  }
+});
+
 
 router.get('/duplicated/excel', (req, res, next) => {
   const hospcode = req.query.hospcode;
