@@ -54,7 +54,7 @@ export class AncModel {
       let sql = `
         select p.HOSPCODE as hospcode, p.PID as pid, p.CID as cid, concat(p.NAME, " ", p.LNAME) as ptname, 
         date_format(p.BIRTH, '%Y-%m-%d') as birth, TIMESTAMPDIFF(year, p.BIRTH, current_date()) as age, p.SEX as sex,
-        t.gravida, t.bdate, t.bhosp, t.input_bhosp,
+        t.gravida, date_format(t.bdate, '%Y-%m-%d') as bdate, t.bhosp, t.input_bhosp,
         t.g1_ga, date_format(t.g1_date, '%Y-%m-%d') as g1_date, t.g1_hospcode, t.g1_input_hosp,
         t.g2_ga, date_format(t.g2_date, '%Y-%m-%d') as g2_date, t.g2_hospcode, t.g2_input_hosp,
         t.g3_ga, date_format(t.g3_date, '%Y-%m-%d') as g3_date, t.g3_hospcode, t.g3_input_hosp,
