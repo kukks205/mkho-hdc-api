@@ -28,10 +28,11 @@ export class AncModel {
   getPostHistory(connection: IConnection, cid: string, gravida: string) {
     return new Promise((resolve, reject) => {
       let sql = `
-        select po.*, h.hospname, p.TYPEAREA
+        select po.*, h.hospname, p.TYPEAREA, cp.ppresult as ppresult_name
         from postnatal as po
         left join chospcode as h on h.hospcode=po.HOSPCODE 
         inner join person as p on p.HOSPCODE=po.HOSPCODE and p.PID=po.PID
+				left join cppresult as cp on cp.id_ppresult=po.PPRESULT
         where concat(po.HOSPCODE, po.PID) in (
         select concat(p.HOSPCODE, p.pid) as hpid 
         from person as p
