@@ -19,6 +19,7 @@ import ancRoute from './routes/anc';
 import wbcRoute from './routes/wbc';
 import chronicRoute from './routes/chronic';
 import personRoute from './routes/person';
+import nhsoRoute from './routes/nhso';
 
 const app: express.Express = express();
 
@@ -80,7 +81,6 @@ let auth = (req, res, next) => {
   jwt.verify(token)
     .then((decoded: any) => {
       req.decoded = decoded;
-      console.log(req.decoded);
       next();
     }, err => {
       return res.send({
@@ -97,6 +97,7 @@ app.use('/anc', auth, ancRoute);
 app.use('/wbc', auth, wbcRoute);
 app.use('/chronic', auth, chronicRoute);
 app.use('/person', auth, personRoute);
+app.use('/nhso', auth, nhsoRoute);
 app.use('/', indexRoute);
 
 //catch 404 and forward to error handler

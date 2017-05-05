@@ -10,6 +10,7 @@
     "cookie-parser": "^1.4.0",
     "cors": "^2.8.1",
     "dotenv": "^4.0.0",
+    "easysoap": "^1.0.6",
     "express": "^4.13.3",
     "fs-extra": "^2.0.0",
     "json2xls": "^0.1.2",
